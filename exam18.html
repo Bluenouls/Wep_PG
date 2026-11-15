@@ -27,7 +27,6 @@
                 if (cur === "") return; 
 
                 if (opt !== "=") {
-                    
                     if (/[+\-*/]$/.test(cur)) {
                         $('#disp2').val(cur.slice(0, -1) + opt);
                     } else {
@@ -36,7 +35,26 @@
                 } else {
                     try {
                         $('#disp1').val(cur + " ="); 
-                        $('#disp2').val(eval(cur));  
+                        
+                        // eval(cur) 대체: 숫자와 연산자 분리 후 계산
+                        let tokens = cur.replace(/^-/, "0-").match(/\d+(\.\d+)?|[+\-*/]/g);
+                        let stack = [];
+                        for (let i = 0; i < tokens.length; i++) {
+                            if (tokens[i] === "*" || tokens[i] === "/") {
+                                let prev = parseFloat(stack.pop());
+                                let next = parseFloat(tokens[++i]);
+                                if (tokens[i - 1] === "/" && next === 0) throw new Error();
+                                stack.push(tokens[i - 1] === "*" ? prev * next : prev / next);
+                            } else {
+                                stack.push(tokens[i]);
+                            }
+                        }
+                        let res = parseFloat(stack[0]);
+                        for (let i = 1; i < stack.length; i += 2) {
+                            let next = parseFloat(stack[i + 1]);
+                            res = stack[i] === "+" ? res + next : res - next;
+                        }
+                        $('#disp2').val(Number.isNaN(res) ? "Error" : res);
                     } catch (e) {
                         $('#disp2').val("Error");
                     }
