@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>계산기</title>
+    <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    
+    <style>
+        :root {
+            --bg-gradient: radial-gradient(circle at top left, #1e293b, #0f172a 60%, #020617);
+            --calc-bg: rgba(30, 41, 59, 0.65);
+            --calc-border: rgba(255, 255, 255, 0.12);
+            --disp-bg: rgba(15, 23, 42, 0.7);
+            --btn-num: rgba(51, 65, 85, 0.6);
+            --btn-num-hover: rgba(71, 85, 105, 0.85);
+            --btn-op: rgba(59, 130, 246, 0.2);
+            --btn-op-text: #60a5fa;
+            --btn-op-hover: rgba(59, 130, 246, 0.35);
+            --btn-clear: rgba(239, 68, 68, 0.2);
+            --btn-clear-text: #f87171;
+            --btn-clear-hover: rgba(239, 68, 68, 0.35);
+            --btn-eq: linear-gradient(135deg, #3b82f6, #2563eb);
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: var(--bg-gradient);
+            font-family: 'Pretendard', sans-serif;
+            color: var(--text-main);
+            overflow: hidden;
+        }
+
+        /* 배경 장식용 은은한 빛 효과 */
+        body::before, body::after {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            filter: blur(90px);
+            z-index: -1;
+        }
+        body::before {
+            background: rgba(59, 130, 246, 0.25);
+            top: 15%;
+            left: 25%;
+        }
+        body::after {
+            background: rgba(139, 92, 246, 0.2);
+            bottom: 15%;
+            right: 25%;
+        }
+
+        .calc-wrapper {
+            width: 340px;
+            padding: 24px;
+            border-radius: 28px;
+            background: var(--calc-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--calc-border);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding: 0 4px;
+        }
+
+        .header h1 {
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text-sub);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 8px #22c55e;
+        }
+
+        /* 디스플레이 영역 */
+        .display-box {
+            background: var(--disp-bg);
+            border-radius: 18px;
+            padding: 16px 18px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.35);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .disp {
+            width: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-family: 'Oxanium', sans-serif;
+            text-align: right;
+        }
+
+        #disp1 {
+            height: 22px;
+            font-size: 15px;
+            color: var(--text-sub);
+            letter-spacing: 0.5px;
+        }
+
+        #disp2 {
+            height: 44px;
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: 1px;
+        }
+
+        /* 버튼 그리드 */
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        button {
+            height: 60px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            font-family: 'Oxanium', sans-serif;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-main);
+            background: var(--btn-num);
+            cursor: pointer;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        button:hover {
+            background: var(--btn-num-hover);
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        button:active, button.active-key {
+            transform: scale(0.94);
+        }
+
+        /* 기능별 버튼 스타일 */
+        button.op {
+            background: var(--btn-op);
+            color: var(--btn-op-text);
+            font-size: 22px;
+        }
+        button.op:hover {
+            background: var(--btn-op-hover);
+        }
+
+        button.clear {
+            background: var(--btn-clear);
+            color: var(--btn-clear-text);
+            font-family: 'Pretendard', sans-serif;
+            font-size: 17px;
+        }
+        button.clear:hover {
+            background: var(--btn-clear-hover);
+        }
+
+        button.eq {
+            background: var(--btn-eq);
+            color: #ffffff;
+            border: none;
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
+        }
+        button.eq:hover {
+            filter: brightness(1.1);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.6);
+        }
+
+        .span-2 {
+            grid-column: span 2;
+        }
+    </style>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script>
+        $(document).ready(function() {
+            let isResultDisplayed = false;
+
+            // 숫자 및 소수점 입력
+            $('.num').click(function() {
+                let cur = $('#disp2').val();
+                let n = $(this).val();
+
+                // 에러 상태거나 방금 계산 완료된 상태에서 숫자 누르면 새로 시작
+                if (cur === "Error" || isResultDisplayed) {
+                    cur = "";
+                    $('#disp1').val("");
+                    isResultDisplayed = false;
+                }
+
+                // 한 숫자 내 소수점 중복 방지
+                if (n === ".") {
+                    let parts = cur.split(/[+\-*/]/);
+                    let lastPart = parts[parts.length - 1];
+                    if (lastPart.includes(".")) return;
+                    if (lastPart === "") n = "0.";
+                }
+
+                $('#disp2').val(cur + n);
+            });
+
+            // 연산자 및 '=' 처리
+            $('.op, .eq').click(function() {
+                let cur = $('#disp2').val();
+                let opt = $(this).val();
+
+                if (cur === "" || cur === "Error") return;
+
+                if (opt !== "=") {
+                    isResultDisplayed = false;
+                    if (/[+\-*/]$/.test(cur)) {
+                        $('#disp2').val(cur.slice(0, -1) + opt);
+                    } else {
+                        $('#disp2').val(cur + opt);
+                    }
+                } else {
+                    try {
+                        // 끝이 연산자로 끝난 경우 제거 후 계산
+                        cur = cur.replace(/[+\-*/]$/, "");
+                        $('#disp1').val(cur + " =");
+
+                        let tokens = cur.replace(/^-/, "0-").match(/\d+(\.\d+)?|[+\-*/]/g);
+                        let stack = [];
+                        for (let i = 0; i < tokens.length; i++) {
+                            if (tokens[i] === "*" || tokens[i] === "/") {
+                                let prev = parseFloat(stack.pop());
+                                let next = parseFloat(tokens[++i]);
+                                if (tokens[i - 1] === "/" && next === 0) throw new Error();
+                                stack.push(tokens[i - 1] === "*" ? prev * next : prev / next);
+                            } else {
+                                stack.push(tokens[i]);
+                            }
+                        }
+                        let res = parseFloat(stack[0]);
+                        for (let i = 1; i < stack.length; i += 2) {
+                            let next = parseFloat(stack[i + 1]);
+                            res = stack[i] === "+" ? res + next : res - next;
+                        }
+
+                        // 부동소수점 오차 보정 (예: 0.1 + 0.2 = 0.30000000000000004 방지)
+                        if (!Number.isNaN(res)) {
+                            res = Math.round(res * 1e10) / 1e10;
+                        }
+
+                        $('#disp2').val(Number.isNaN(res) ? "Error" : res);
+                        isResultDisplayed = true;
+                    } catch (e) {
+                        $('#disp2').val("Error");
+                        isResultDisplayed = true;
+                    }
+                }
+            });
+
+            // 전체 초기화 (AC)
+            $('#clear').click(function() {
+                $('#disp1').val("");
+                $('#disp2').val("");
+                isResultDisplayed = false;
+            });
+
+            // 한 글자 지우기 (Backspace)
+            $('#backspace').click(function() {
+                let cur = $('#disp2').val();
+                if (cur === "Error" || isResultDisplayed) {
+                    $('#disp1').val("");
+                    $('#disp2').val("");
+                    isResultDisplayed = false;
+                    return;
+                }
+                $('#disp2').val(cur.slice(0, -1));
+            });
+
+            // 키보드 입력 연동
+            $(document).keydown(function(e) {
+                let key = e.key;
+                if (key === "Enter") key = "=";
+                if (key === "Escape") {
+                    $('#clear').click().addClass('active-key');
+                    setTimeout(() => $('#clear').removeClass('active-key'), 120);
+                    return;
+                }
+                if (key === "Backspace") {
+                    $('#backspace').click().addClass('active-key');
+                    setTimeout(() => $('#backspace').removeClass('active-key'), 120);
+                    return;
+                }
+
+                let $btn = $(`button[value="${key}"]`);
+                if ($btn.length) {
+                    e.preventDefault();
+                    $btn.click().addClass('active-key');
+                    setTimeout(() => $btn.removeClass('active-key'), 120);
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="calc-wrapper">
+        <div class="header">
+            <h1>CALCULATOR</h1>
+            <div class="status-dot" title="Ready"></div>
+        </div>
+
+        <div class="display-box">
+            <input type="text" class="disp" id="disp1" readonly placeholder="0">
+            <input type="text" class="disp" id="disp2" readonly placeholder="0">
+        </div>
+
+        <div class="keypad">
+            <button type="button" class="clear span-2" id="clear">AC</button>
+            <button type="button" class="clear" id="backspace">⌫</button>
+            <button type="button" class="op" value="/">÷</button>
+
+            <button type="button" class="num" value="7">7</button>
+            <button type="button" class="num" value="8">8</button>
+            <button type="button" class="num" value="9">9</button>
+            <button type="button" class="op" value="*">×</button>
+
+            <button type="button" class="num" value="4">4</button>
+            <button type="button" class="num" value="5">5</button>
+            <button type="button" class="num" value="6">6</button>
+            <button type="button" class="op" value="-">−</button>
+
+            <button type="button" class="num" value="1">1</button>
+            <button type="button" class="num" value="2">2</button>
+            <button type="button" class="num" value="3">3</button>
+            <button type="button" class="op" value="+">+</button>
+
+            <button type="button" class="num span-2" value="0">0</button>
+            <button type="button" class="num" value=".">.</button>
+            <button type="button" class="eq" value="=">=</button>
+        </div>
+    </div>
+</body>
+</html>

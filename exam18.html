@@ -36,7 +36,6 @@
                     try {
                         $('#disp1').val(cur + " ="); 
                         
-                        // eval(cur) 대체: 숫자와 연산자 분리 후 계산
                         let tokens = cur.replace(/^-/, "0-").match(/\d+(\.\d+)?|[+\-*/]/g);
                         let stack = [];
                         for (let i = 0; i < tokens.length; i++) {
