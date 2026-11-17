@@ -15,6 +15,7 @@ const server = http.createServer((req, res) => {
   // res.end(); // 응답 종료
   res.setHeader("Content-Type", "text/html");
   const readStream = fs.createReadStream(__dirname + "/index.html", "utf8");
+  readStream.pipe(res); 
 });
 
 server.listen(PORT, () => {
